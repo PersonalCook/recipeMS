@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  recipe_service_db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: recipes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - recipe_service_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - personalcook_net
+
+  recipe_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@recipe_service_db:5432/recipes
+      ELASTICSEARCH_HOST: http://elasticsearch:9200
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM}
+      USER_SERVICE_URL: http://user_service:8000
+    depends_on:
+      - recipe_service_db
+    ports:
+      - "8001:8000"
+    volumes:
+      - recipe_media:/app/media
+    networks:
+      - personalcook_net
+
+volumes:
+  recipe_service_db_data:
+  recipe_media:
+
+networks:
+  personalcook_net:
+    external: true
+    name: personalcook-net
