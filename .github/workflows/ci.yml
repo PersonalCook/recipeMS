@@ -37,6 +37,7 @@ jobs:
             -e DATABASE_URL=sqlite:///./test.db \
             -e JWT_SECRET=ci-secret \
             -e JWT_ALGORITHM=HS256 \
+            -e ELASTICSEARCH_PASSWORD=ci-secret \
             -p 8000:8000 \
             recipe-service:test
       - name: Smoke test
