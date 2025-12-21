@@ -1,6 +1,7 @@
 import importlib
 import json
 from pathlib import Path
+import sys
 
 import pytest
 from fastapi import FastAPI
@@ -24,11 +25,24 @@ def test_client(monkeypatch, tmp_path: Path):
     media_root = tmp_path / "media"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path}")
     monkeypatch.setenv("MEDIA_ROOT", str(media_root))
+    monkeypatch.setenv("JWT_SECRET", "test-secret")
+    monkeypatch.setenv("JWT_ALGORITHM", "HS256")
+    monkeypatch.setenv("ELASTICSEARCH_PASSWORD", "test-secret")
 
-    database = importlib.reload(importlib.import_module("app.database"))
-    models = importlib.reload(importlib.import_module("app.models"))
-    importlib.reload(importlib.import_module("app.crud"))
-    recipes = importlib.reload(importlib.import_module("app.routers.recipes"))
+    for module_name in [
+        "app.database",
+        "app.models",
+        "app.crud",
+        "app.elastic",
+        "app.utils.auth",
+        "app.routers.recipes",
+    ]:
+        sys.modules.pop(module_name, None)
+
+    database = importlib.import_module("app.database")
+    models = importlib.import_module("app.models")
+    importlib.import_module("app.crud")
+    recipes = importlib.import_module("app.routers.recipes")
 
     models.Base.metadata.create_all(bind=database.engine)
 
