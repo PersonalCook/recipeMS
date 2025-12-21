@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recipe-service
+  namespace: personalcook
+  labels:
+    app.kubernetes.io/name: recipe_service
+    app.kubernetes.io/instance: recipe-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: recipe_service
+      app.kubernetes.io/instance: recipe-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: recipe_service
+        app.kubernetes.io/instance: recipe-service
+    spec:
+      containers:
+        - name: recipe-service
+          image: piasotlar/recipe_service:v8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: recipe-service-db
+                  key: DATABASE_URL
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: jwt-secret
+
+            - name: JWT_ALGORITHM
+              value: HS256
+
+            # Elasticsearch (ECK)
+            - name: ELASTICSEARCH_HOST
+              value: https://quickstart-es-http:9200
+
+            - name: ELASTICSEARCH_USER
+              value: elastic
+
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: quickstart-es-elastic-user
+                  key: elastic
+
+            # User service URL
+            - name: USER_SERVICE_URL
+              value: http://user-service:8000
+
+          livenessProbe:
+            httpGet:
+              path: /docs
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          volumeMounts:
+            - name: media
+              mountPath: /app/media
+
+      volumes:
+        - name: media
+          emptyDir: {}

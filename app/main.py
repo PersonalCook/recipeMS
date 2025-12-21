@@ -4,6 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
 from .routers import recipes
 from . import models
+from app.utils.storage import MEDIA_ROOT
+import os
+
+os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -19,7 +23,7 @@ app.add_middleware(
 
 
 app.include_router(recipes.router)
-app.mount("/media", StaticFiles(directory="media"), name="media")
+app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 
 @app.get("/")
 def root():

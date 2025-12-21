@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: recipe-service
+  namespace: personalcook
+  labels:
+    app.kubernetes.io/name: recipe_service
+    app.kubernetes.io/instance: recipe-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: recipe_service
+    app.kubernetes.io/instance: recipe-service
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
