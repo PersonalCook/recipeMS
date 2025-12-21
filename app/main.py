@@ -29,5 +29,10 @@ app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 def root():
     return {"message": "Recipe Service running in Docker!"}
 
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 #uvicorn app.main:app --reload
 #http://localhost:8080/docs
