@@ -9,3 +9,4 @@ aiohttp
 httpx
 PyJWT
 python-multipart
+prometheus-client

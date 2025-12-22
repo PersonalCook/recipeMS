@@ -6,6 +6,10 @@ metadata:
   labels:
     app.kubernetes.io/name: recipe_service
     app.kubernetes.io/instance: recipe-service
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
 spec:
   type: ClusterIP
   selector:

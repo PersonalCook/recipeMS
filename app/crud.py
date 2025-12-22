@@ -3,10 +3,6 @@ from . import models, schemas
 from typing import Optional
 
 
-# -----------------------------------------
-# Helper: serialize SQLAlchemy Recipe → Pydantic-friendly dict
-# -----------------------------------------
-
 def serialize_recipe(recipe: models.Recipe):
     return {
         "recipe_id": recipe.recipe_id,

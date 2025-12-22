@@ -11,6 +11,7 @@ from ..elastic import client
 from ..utils.auth import get_current_user_id
 from ..services.user_client import get_user_id_by_username
 from ..utils.storage import save_image
+from ..metrics import num_created_recipes
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
 
@@ -20,7 +21,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 
 #adding recipe to elasticsearch
@@ -103,7 +103,6 @@ async def create_recipe(
     user_id: int = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    # Parse ingredients from JSON string payload
     try:
         ingredients_payload = json.loads(ingredients)
         ingredient_items = [schemas.IngredientCreate(**ing) for ing in ingredients_payload]
@@ -129,6 +128,7 @@ async def create_recipe(
         category=category,
     )
 
+    num_created_recipes.labels(source="api").inc()
     created_recipe = crud.create_recipe(db=db, recipe=recipe, user_id=user_id)
     await index_recipe(created_recipe)
     return created_recipe

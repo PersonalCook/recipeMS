@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: recipe-service
-          image: piasotlar/recipe_service:v12
+          image: piasotlar/recipe_service:v13
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from app.services.nutrition_client import fetch_nutrition
+from ..metrics import num_nutrition_analyses
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 
@@ -13,7 +14,7 @@ class Ingredient(BaseModel):
 class NutritionSummaryRequest(BaseModel):
     ingredients: List[Ingredient]
 
-NUTRITION_FIELDS = [
+nutrition_data = [
     "fat_total_g",
     "fat_saturated_g",
     "sodium_mg",
@@ -24,7 +25,7 @@ NUTRITION_FIELDS = [
     "sugar_g",
 ]
 
-def _to_number(value):
+def convert_to_num(value):
     try:
         return float(value)
     except (TypeError, ValueError):
@@ -32,23 +33,23 @@ def _to_number(value):
 
 @router.post("")
 async def get_nutrition_summary(data: NutritionSummaryRequest, servings: int):
+    status = "success"
     try:
         items = []
 
-        for ing in data.ingredients:
-            single_query = f"{ing.amount}{(' ' + ing.unit) if ing.unit else ''} {ing.name}"
-            res = await fetch_nutrition(single_query)
-            # api-ninjas vrne listo – jo dodamo v skupni seznam
+        for ingredient in data.ingredients:
+            query = f"{ingredient.amount}{(' ' + ingredient.unit) if ingredient.unit else ''} {ingredient.name}"
+            res = await fetch_nutrition(query)
             items.extend(res)
 
         total_weight_g = 0.0
-        totals = {field: 0.0 for field in NUTRITION_FIELDS}
+        totals = {field: 0.0 for field in nutrition_data}
 
         for item in items:
-            weight = _to_number(item.get("serving_size_g"))
+            weight = convert_to_num(item.get("serving_size_g"))
             total_weight_g += weight
-            for field in NUTRITION_FIELDS:
-                totals[field] += _to_number(item.get(field))
+            for field in nutrition_data:
+                totals[field] += convert_to_num(item.get(field))
 
         per_100g = {}
         if total_weight_g > 0:
@@ -61,6 +62,7 @@ async def get_nutrition_summary(data: NutritionSummaryRequest, servings: int):
             factor = 1.0 / servings
             for field, value in totals.items():
                 per_serving[field] = value * factor
+        
 
         return {
             "total_weight_g": total_weight_g,
@@ -71,4 +73,8 @@ async def get_nutrition_summary(data: NutritionSummaryRequest, servings: int):
         }
 
     except Exception as e:
+        status = "error"
         raise HTTPException(status_code=502, detail=str(e))
+    
+    finally:
+        num_nutrition_analyses.labels(source="external_api", status=status).inc()

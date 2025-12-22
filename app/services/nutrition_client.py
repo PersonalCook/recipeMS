@@ -7,7 +7,6 @@ API_URL = "https://api.api-ninjas.com/v1/nutrition"
 API_KEY = os.getenv("NINJAS_NUTRITION_API_KEY")
 
 async def fetch_nutrition(query: str):
-    """query npr. '100g chicken breast, 1 tbsp olive oil'"""
     if not API_KEY:
         raise RuntimeError("NINJAS_NUTRITION_API_KEY not configured")
     headers = {"X-Api-Key": API_KEY}
