@@ -6,6 +6,8 @@ from .routers import recipes
 from . import models
 from app.utils.storage import MEDIA_ROOT
 import os
+from .routers import nutrition
+
 
 os.makedirs(MEDIA_ROOT, exist_ok=True)
 
@@ -23,6 +25,7 @@ app.add_middleware(
 
 
 app.include_router(recipes.router)
+app.include_router(nutrition.router)
 app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 
 @app.get("/")

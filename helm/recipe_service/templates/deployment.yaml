@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: recipe-service
-          image: piasotlar/recipe_service:v8
+          image: piasotlar/recipe_service:v12
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -42,7 +42,6 @@ spec:
             - name: JWT_ALGORITHM
               value: HS256
 
-            # Elasticsearch (ECK)
             - name: ELASTICSEARCH_HOST
               value: https://quickstart-es-http:9200
 
@@ -55,9 +54,14 @@ spec:
                   name: quickstart-es-elastic-user
                   key: elastic
 
-            # User service URL
             - name: USER_SERVICE_URL
               value: http://user-service:8000
+
+            - name: NINJAS_NUTRITION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ninjas-nutrition-secret
+                  key: NINJAS_NUTRITION_API_KEY
 
           livenessProbe:
             httpGet:
