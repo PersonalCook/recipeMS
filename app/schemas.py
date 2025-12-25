@@ -15,9 +15,6 @@ class VisibilityEnum(str, Enum):
     PRIVATE = "private"
     FOLLOWERS_ONLY = "followers_only"
 
-# -------------------------
-# Ingredient Schemas
-# -------------------------
 
 class IngredientCreate(BaseModel):
     name: str
@@ -32,10 +29,6 @@ class IngredientRead(BaseModel):
     class Config:
         orm_mode = True
 
-
-# -------------------------
-# Recipe Schemas
-# -------------------------
 
 class RecipeBase(BaseModel):
     recipe_name: str
