@@ -65,7 +65,7 @@ jobs:
       - name: Tag & push image
         if: github.ref == 'refs/heads/main'
         env:
-          IMAGE_NAME: piasotlar/recipe-service
+          IMAGE_NAME: piasotlar/recipe_service
         run: |
           echo "Pushing image $IMAGE_NAME:${IMAGE_TAG}"
           docker tag recipe-service:test $IMAGE_NAME:${IMAGE_TAG}
