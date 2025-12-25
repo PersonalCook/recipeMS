@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -26,6 +26,9 @@ jobs:
 
   container:
     runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      image_tag: ${{ steps.set_image_tag.outputs.image_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,10 +55,12 @@ jobs:
           exit 1
 
       - name: Set image tag
+        id: set_image_tag
         if: github.ref == 'refs/heads/main'
         run: |
           IMAGE_TAG=v${{ github.run_number }}
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
       - name: Login to Docker Hub
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
@@ -76,3 +81,33 @@ jobs:
       - name: Cleanup
         if: always()
         run: docker rm -f recipe-service
+
+
+  deploy:
+    needs: container
+    if: github.ref == 'refs/heads/main' && needs.container.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug deploy info
+        run: |
+          echo "Deploy uses tag: ${{ needs.container.outputs.image_tag }}"
+#      - name: Checkout
+#        uses: actions/checkout@v4
+
+#      - name: Azure login
+#        uses: azure/login@v2
+#        with:
+#          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#      - name: Set AKS context
+#        uses: azure/aks-set-context@v4
+#        with:
+#          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+#          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+#      - name: Helm upgrade recipe-service
+#        run: |
+#          helm upgrade --install recipe-service ./helm/recipe_service \
+#            --namespace personalcook \
+#            --set image.repository=piasotlar/recipe_service \
+#            --set image.tag=${{ needs.container.outputs.image_tag }}
+

@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: piasotlar/recipe_service
   pullPolicy: IfNotPresent
-  tag: "v13"
+  tag: latest
 
 imagePullSecrets: []
 nameOverride: ""
