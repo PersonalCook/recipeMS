@@ -23,7 +23,7 @@ def get_db():
         db.close()
 
 
-#adding recipe to elasticsearch
+#adding and updating recipe to elasticsearch
 async def index_recipe(recipe):
     await client.index(
         index="recipes",
@@ -43,7 +43,6 @@ async def index_recipe(recipe):
         }
     )
 
-#updating recipe in elasticsearch
 async def update_recipe_es(recipe):
     await client.update(
         index="recipes",
