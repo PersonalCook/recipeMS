@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: piasotlar/recipe_service
   pullPolicy: IfNotPresent
-  tag: latest
+  tag: latest #zaenkart latest, kasneje treba dat konkreten tag
 
 imagePullSecrets: []
 nameOverride: ""

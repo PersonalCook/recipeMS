@@ -83,4 +83,5 @@ spec:
 
       volumes:
         - name: media
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: recipe-service-pvc
