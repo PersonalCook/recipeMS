@@ -4,7 +4,7 @@ sqlalchemy
 psycopg2-binary
 pydantic
 python-dotenv
-elasticsearch
+elasticsearch==8.12.1
 aiohttp
 httpx
 PyJWT
