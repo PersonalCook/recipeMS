@@ -17,6 +17,7 @@ from . import models
 from app.utils.storage import MEDIA_ROOT
 import os
 from .routers import nutrition
+from .schemas import RootResponse, HealthResponse
 
 
 os.makedirs(MEDIA_ROOT, exist_ok=True)
@@ -61,15 +62,38 @@ async def metrics_middleware(request: Request, call_next):
     finally:
         requests_in_progress.dec()
 
-@app.get("/metrics")
+@app.get(
+    "/metrics",
+    summary="Prometheus metrics",
+    responses={
+        200: {"description": "OK", "content": {"text/plain": {"example": "# HELP ..."}}}
+    },
+)
 def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
  
-@app.get("/")
+@app.get(
+    "/",
+    response_model=RootResponse,
+    summary="Service info",
+    responses={
+        200: {
+            "description": "OK",
+            "content": {"application/json": {"example": {"message": "Recipe Service running!"}}},
+        }
+    },
+)
 def root():
-    return {"message": "Recipe Service running in Docker!"}
+    return {"message": "Recipe Service running!"}
 
 
-@app.get("/health")
+@app.get(
+    "/health",
+    response_model=HealthResponse,
+    summary="Health check",
+    responses={
+        200: {"description": "OK", "content": {"application/json": {"example": {"status": "ok"}}}}
+    },
+)
 def health():
     return {"status": "ok"}

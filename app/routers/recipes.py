@@ -1,6 +1,6 @@
 import json
 from datetime import time
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
 from ..database import SessionLocal
@@ -14,6 +14,49 @@ from ..utils.storage import save_image
 from ..metrics import num_created_recipes
 
 router = APIRouter(prefix="/recipes", tags=["Recipes"])
+
+EXAMPLE_RECIPE = {
+    "recipe_id": 10,
+    "user_id": 2,
+    "created_at": "2025-01-01T12:00:00",
+    "recipe_name": "Tomato Soup",
+    "description": "Quick soup",
+    "cooking_time": "00:20:00",
+    "total_time": "00:30:00",
+    "servings": 2,
+    "ingredients": [{"name": "tomato", "amount": 2, "unit": "pcs"}],
+    "instructions": "Blend and cook.",
+    "keywords": "soup",
+    "img": "/media/recipes/soup.jpg",
+    "visibility": "public",
+    "category": "lunch",
+}
+
+ERROR_400 = {
+    "model": schemas.ErrorResponse,
+    "description": "Bad request",
+    "content": {"application/json": {"example": {"detail": "Invalid ingredients format"}}},
+}
+ERROR_401 = {
+    "model": schemas.ErrorResponse,
+    "description": "Unauthorized",
+    "content": {"application/json": {"example": {"detail": "Invalid or expired token"}}},
+}
+ERROR_403 = {
+    "model": schemas.ErrorResponse,
+    "description": "Forbidden",
+    "content": {"application/json": {"example": {"detail": "You can only edit your own recipes"}}},
+}
+ERROR_404 = {
+    "model": schemas.ErrorResponse,
+    "description": "Not found",
+    "content": {"application/json": {"example": {"detail": "Recipe not found"}}},
+}
+ERROR_500 = {
+    "model": schemas.ErrorResponse,
+    "description": "Internal error",
+    "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+}
 
 def get_db():
     db = SessionLocal()
@@ -69,13 +112,36 @@ async def delete_recipe_es(recipe_id):
         ignore=[404]
     )
 
-@router.get("/", response_model=list[schemas.Recipe])
-def read_recipes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@router.get(
+    "/",
+    response_model=list[schemas.Recipe],
+    summary="List recipes",
+    responses={
+        200: {"description": "OK", "content": {"application/json": {"example": [EXAMPLE_RECIPE]}}},
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
+def read_recipes(
+    skip: int = Query(0, ge=0, description="Number of items to skip", examples={"example": {"value": 0}}),
+    limit: int = Query(100, ge=1, le=200, description="Max items to return", examples={"example": {"value": 20}}),
+    db: Session = Depends(get_db),
+):
     recipes = crud.get_recipes(db, skip=skip, limit=limit)
     return recipes 
 
 
-@router.get("/{recipe_id}", response_model=schemas.Recipe)
+@router.get(
+    "/{recipe_id}",
+    response_model=schemas.Recipe,
+    summary="Get recipe by id",
+    responses={
+        200: {"description": "OK", "content": {"application/json": {"example": EXAMPLE_RECIPE}}},
+        404: ERROR_404,
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
 def read_recipe(recipe_id: int, db: Session = Depends(get_db)):
     recipe = crud.get_recipe(db, recipe_id)
 
@@ -86,14 +152,30 @@ def read_recipe(recipe_id: int, db: Session = Depends(get_db)):
 
 
 
-@router.post("/", response_model=schemas.Recipe, status_code=201)
+@router.post(
+    "/",
+    response_model=schemas.Recipe,
+    status_code=201,
+    summary="Create recipe",
+    description="Creates a recipe from multipart form data (including image upload).",
+    responses={
+        201: {"description": "Created", "content": {"application/json": {"example": EXAMPLE_RECIPE}}},
+        400: ERROR_400,
+        401: ERROR_401,
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
 async def create_recipe(
     recipe_name: str = Form(...),
     description: str | None = Form(None),
     cooking_time: time = Form(...),
     total_time: time = Form(...),
     servings: int = Form(...),
-    ingredients: str = Form(..., description="JSON array of ingredients"),
+    ingredients: str = Form(
+        ...,
+        description='JSON array of ingredients, e.g. [{"name":"tomato","amount":2,"unit":"pcs"}]',
+    ),
     instructions: str = Form(...),
     keywords: str | None = Form(None),
     visibility: schemas.VisibilityEnum = Form(schemas.VisibilityEnum.PUBLIC),
@@ -133,7 +215,21 @@ async def create_recipe(
     return created_recipe
 
 
-@router.put("/{recipe_id}", response_model=schemas.Recipe)
+@router.put(
+    "/{recipe_id}",
+    response_model=schemas.Recipe,
+    summary="Update recipe",
+    description="Updates a recipe; only the owner can edit.",
+    responses={
+        200: {"description": "OK", "content": {"application/json": {"example": EXAMPLE_RECIPE}}},
+        400: ERROR_400,
+        401: ERROR_401,
+        403: ERROR_403,
+        404: ERROR_404,
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
 async def update_recipe(
     recipe_id: int,
     recipe_name: str | None = Form(None),
@@ -189,7 +285,20 @@ async def update_recipe(
     return updated
 
 
-@router.delete("/{recipe_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{recipe_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete recipe",
+    description="Deletes a recipe; only the owner can delete.",
+    responses={
+        204: {"description": "Deleted"},
+        401: ERROR_401,
+        403: ERROR_403,
+        404: ERROR_404,
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
 async def delete_recipe(
     recipe_id: int,
     user_id: int = Depends(get_current_user_id),
@@ -206,13 +315,31 @@ async def delete_recipe(
         await delete_recipe_es(recipe_id)
     return None
 
-@router.get("/user/{user_id}", response_model=list[schemas.Recipe])
+@router.get(
+    "/user/{user_id}",
+    response_model=list[schemas.Recipe],
+    summary="List recipes by user id",
+    responses={
+        200: {"description": "OK", "content": {"application/json": {"example": [EXAMPLE_RECIPE]}}},
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
 def get_recipes_created_by_user(user_id: int, db: Session = Depends(get_db)):
     recipes = crud.get_recipes_by_user(db, user_id=user_id)
     return recipes
 
 
-@router.get("/by-username/{username}", response_model=list[schemas.Recipe])
+@router.get(
+    "/by-username/{username}",
+    response_model=list[schemas.Recipe],
+    summary="List recipes by username",
+    responses={
+        200: {"description": "OK", "content": {"application/json": {"example": [EXAMPLE_RECIPE]}}},
+        422: {"description": "Validation error"},
+        500: ERROR_500,
+    },
+)
 async def get_recipes_created_by_username(username: str, db: Session = Depends(get_db)):
     user_id = await get_user_id_by_username(username)
     recipes = crud.get_recipes_by_user(db, user_id=user_id)

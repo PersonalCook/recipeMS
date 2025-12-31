@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query, Body
 from pydantic import BaseModel
 from typing import List
 from app.services.nutrition_client import fetch_nutrition
 from ..metrics import num_nutrition_analyses
+from .. import schemas
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 
@@ -31,8 +32,49 @@ def convert_to_num(value):
     except (TypeError, ValueError):
         return 0.0
 
-@router.post("")
-async def get_nutrition_summary(data: NutritionSummaryRequest, servings: int):
+@router.post(
+    "",
+    response_model=schemas.NutritionSummaryResponse,
+    summary="Get nutrition summary",
+    description="Calculates nutrition totals from ingredient list.",
+    responses={
+        200: {
+            "description": "OK",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total_weight_g": 200.0,
+                        "totals": {"fat_total_g": 10.0},
+                        "per_100g": {"fat_total_g": 5.0},
+                        "per_serving": {"fat_total_g": 2.5},
+                        "items": [{"name": "tomato", "serving_size_g": 100}],
+                    }
+                }
+            },
+        },
+        422: {"description": "Validation error"},
+        502: {
+            "model": schemas.ErrorResponse,
+            "description": "External API error",
+            "content": {"application/json": {"example": {"detail": "Nutrition API unavailable"}}},
+        },
+    },
+)
+async def get_nutrition_summary(
+    data: NutritionSummaryRequest = Body(
+        ...,
+        examples={
+            "example": {
+                "value": {
+                    "ingredients": [
+                        {"name": "tomato", "amount": 2, "unit": "pcs"}
+                    ]
+                }
+            }
+        },
+    ),
+    servings: int = Query(1, ge=1, description="Number of servings", examples={"example": {"value": 2}}),
+):
     status = "success"
     try:
         items = []

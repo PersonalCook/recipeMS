@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import time, datetime
 from enum import Enum
 
@@ -79,3 +79,23 @@ class Recipe(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ErrorResponse(BaseModel):
+    detail: str
+
+
+class RootResponse(BaseModel):
+    message: str
+
+
+class HealthResponse(BaseModel):
+    status: str
+
+
+class NutritionSummaryResponse(BaseModel):
+    total_weight_g: float
+    totals: Dict[str, float]
+    per_100g: Dict[str, float]
+    per_serving: Dict[str, float]
+    items: List[Dict[str, Any]]
