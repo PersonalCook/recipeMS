@@ -19,17 +19,12 @@ import os
 from .routers import nutrition
 from .schemas import RootResponse, HealthResponse
 
+
 os.makedirs(MEDIA_ROOT, exist_ok=True)
+
 models.Base.metadata.create_all(bind=engine)
 
-API_PREFIX = "/api/recipe"
-
-app = FastAPI(
-    title="Recipe Service",
-    docs_url=f"{API_PREFIX}/docs",
-    redoc_url=f"{API_PREFIX}/redoc",
-    openapi_url=f"{API_PREFIX}/openapi.json",
-)
+app = FastAPI(title="Recipe Service")
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
@@ -41,12 +36,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Prefiksiraj API routerje
-app.include_router(recipes.router, prefix=API_PREFIX)
-app.include_router(nutrition.router, prefix=API_PREFIX)
-
-# Prefiksiraj tudi media
-app.mount(f"{API_PREFIX}/media", StaticFiles(directory=MEDIA_ROOT), name="media")
+app.include_router(recipes.router)
+app.include_router(nutrition.router)
+app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
@@ -73,7 +65,7 @@ async def metrics_middleware(request: Request, call_next):
         requests_in_progress.dec()
 
 @app.get(
-    f"{API_PREFIX}/metrics",
+    "/metrics",
     summary="Prometheus metrics",
     responses={
         200: {"description": "OK", "content": {"text/plain": {"example": "# HELP ..."}}}
@@ -81,9 +73,9 @@ async def metrics_middleware(request: Request, call_next):
 )
 def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
+ 
 @app.get(
-    f"{API_PREFIX}/",
+    "/",
     response_model=RootResponse,
     summary="Service info",
     responses={
@@ -96,8 +88,9 @@ def metrics():
 def root():
     return {"message": "Recipe Service running!"}
 
+
 @app.get(
-    f"{API_PREFIX}/health",
+    "/health",
     response_model=HealthResponse,
     summary="Health check",
     responses={
