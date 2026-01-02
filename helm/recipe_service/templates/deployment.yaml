@@ -1,87 +1,91 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: recipe-service
-  namespace: personalcook
+  name: {{ include "recipe_service.fullname" . }}
   labels:
-    app.kubernetes.io/name: recipe_service
-    app.kubernetes.io/instance: recipe-service
+    {{- include "recipe_service.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: recipe_service
-      app.kubernetes.io/instance: recipe-service
+      {{- include "recipe_service.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: recipe_service
-        app.kubernetes.io/instance: recipe-service
+        {{- include "recipe_service.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       containers:
         - name: recipe-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8000
+              containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
+
+          envFrom:
+            - configMapRef:
+                name: {{ include "recipe_service.fullname" . }}-config
+
           env:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: recipe-service-db
-                  key: DATABASE_URL
+                  name: {{ .Values.secrets.databaseUrlSecret.name }}
+                  key: {{ .Values.secrets.databaseUrlSecret.key }}
 
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets
-                  key: jwt-secret
-
-            - name: JWT_ALGORITHM
-              value: HS256
-
-            - name: ELASTICSEARCH_HOST
-              value: https://quickstart-es-http:9200
-
-            - name: ELASTICSEARCH_USER
-              value: elastic
+                  name: {{ .Values.secrets.jwtSecret.name }}
+                  key: {{ .Values.secrets.jwtSecret.key }}
 
             - name: ELASTICSEARCH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: quickstart-es-elastic-user
-                  key: elastic
-
-            - name: USER_SERVICE_URL
-              value: http://user-service:8000
+                  name: {{ .Values.secrets.elasticPassword.name }}
+                  key: {{ .Values.secrets.elasticPassword.key }}
 
             - name: NINJAS_NUTRITION_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: ninjas-nutrition-secret
-                  key: NINJAS_NUTRITION_API_KEY
+                  name: {{ .Values.secrets.ninjasApiKey.name }}
+                  key: {{ .Values.secrets.ninjasApiKey.key }}
 
           livenessProbe:
             httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 20
-            periodSeconds: 10
+              path: {{ .Values.probes.livenessPath }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.livenessInitialDelay }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
 
           readinessProbe:
             httpGet:
-              path: /health
-              port: 8000
-            initialDelaySeconds: 10
-            periodSeconds: 10
+              path: {{ .Values.probes.readinessPath }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.readinessInitialDelay }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
 
           volumeMounts:
             - name: media
               mountPath: /app/media
+            {{- if .Values.config.file.enabled }}
+            - name: app-config
+              mountPath: /app/config
+              readOnly: true
+            {{- end }}
 
       volumes:
         - name: media
           persistentVolumeClaim:
-            claimName: recipe-service-pvc
+            claimName: {{ .Values.persistence.mediaPvcName }}
+        {{- if .Values.config.file.enabled }}
+        - name: app-config
+          configMap:
+            name: {{ include "recipe_service.fullname" . }}-config
+            items:
+              - key: {{ .Values.config.file.name }}
+                path: {{ .Values.config.file.name }}
+        {{- end }}

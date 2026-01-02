@@ -2,152 +2,64 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
+  tag: v16
   pullPolicy: IfNotPresent
-  tag: latest #zaenkart latest, kasneje treba dat konkreten tag
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: false
-  name: ""
-
-
-podAnnotations: {}
-podLabels: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 
 service:
   type: ClusterIP
   port: 8000
   targetPort: 8000
 
+config:
+  corsOrigins:
+    - "http://localhost:5173"
+    - "http://134.112.128.83"
+  mediaRoot: "media"
+  jwtAlgorithm: "HS256"
+  elasticsearch:
+    host: "https://quickstart-es-http:9200"
+    user: "elastic"
+  userServiceUrl: "http://user-service:8000"
+  
+  file:
+    enabled: true
+    name: config.yaml
+    content: |
+      cors:
+        origins:
+          - "http://localhost:5173"
+          - "http://134.112.128.83"
+      media:
+        root: "media"
+      services:
+        user_service_url: "http://user-service:8000"
+      elasticsearch:
+        host: "https://quickstart-es-http:9200"
+        user: "elastic"
 
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: chart-example.local
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-    # - secretName: chart-example-tls
-    #   hosts:
-    #     - chart-example.local
+secrets:
+  databaseUrlSecret:
+    name: recipe-service-db
+    key: DATABASE_URL
 
+  jwtSecret:
+    name: app-secrets
+    key: jwt-secret
 
-httpRoute:
+  elasticPassword:
+    name: quickstart-es-elastic-user
+    key: elastic
 
-  enabled: false
-  annotations: {}
-  parentRefs:
-  - name: gateway
-    sectionName: http
-  hostnames:
-  - chart-example.local
+  ninjasApiKey:
+    name: ninjas-nutrition-secret
+    key: NINJAS_NUTRITION_API_KEY
 
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /headers
-  #   filters:
-  #   - type: RequestHeaderModifier
-  #     requestHeaderModifier:
-  #       set:
-  #       - name: My-Overwrite-Header
-  #         value: this-is-the-only-value
-  #       remove:
-  #       - User-Agent
-  # - matches:
-  #   - path:
-  #       type: PathPrefix
-  #       value: /echo
-  #     headers:
-  #     - name: version
-  #       value: v2
+persistence:
+  mediaPvcName: recipe-service-pvc
 
-resources: {}
-
-
-livenessProbe:
-  httpGet:
-    path: /docs
-    port: 8000
-  initialDelaySeconds: 20
+probes:
+  livenessPath: /health
+  readinessPath: /health
+  livenessInitialDelay: 20
+  readinessInitialDelay: 10
   periodSeconds: 10
-readinessProbe:
-  httpGet:
-    path: /docs
-    port: 8000
-  initialDelaySeconds: 10
-  periodSeconds: 10
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
-
-volumes:
-  - name: media
-    emptyDir: {}
-
-volumeMounts:
-  - name: media
-    mountPath: /app/media
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-env:
-  - name: DATABASE_URL
-    valueFrom:
-      secretKeyRef:
-        name: recipe-service-db
-        key: DATABASE_URL
-
-  - name: JWT_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: app-secrets
-        key: jwt-secret
-  - name: JWT_ALGORITHM
-    value: HS256
-
-  - name: ELASTICSEARCH_HOST
-    value: https://quickstart-es-http:9200
-
-  - name: ELASTICSEARCH_USER
-    value: elastic
-
-  - name: ELASTICSEARCH_PASSWORD
-    valueFrom:
-      secretKeyRef:
-        name: quickstart-es-elastic-user
-        key: elastic
-
-  - name: USER_SERVICE_URL
-    value: http://user-service:8000
-

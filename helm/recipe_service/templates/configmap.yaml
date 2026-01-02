@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "recipe_service.fullname" . }}-config
+  labels:
+    {{- include "recipe_service.labels" . | nindent 4 }}
+data:
+  CORS_ORIGINS: {{ join "," .Values.config.corsOrigins | quote }}
+  MEDIA_ROOT: {{ .Values.config.mediaRoot | quote }}
+  JWT_ALGORITHM: {{ .Values.config.jwtAlgorithm | quote }}
+  ELASTICSEARCH_HOST: {{ .Values.config.elasticsearch.host | quote }}
+  ELASTICSEARCH_USER: {{ .Values.config.elasticsearch.user | quote }}
+  USER_SERVICE_URL: {{ .Values.config.userServiceUrl | quote }}
+
+  {{- if .Values.config.file.enabled }}
+  {{ .Values.config.file.name }}: |
+{{ .Values.config.file.content | indent 4 }}
+  {{- end }}
+
+
