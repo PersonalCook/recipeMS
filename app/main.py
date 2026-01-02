@@ -29,6 +29,11 @@ app = FastAPI(
     root_path=os.getenv("ROOT_PATH", ""),
     title="Recipe Service"
 )
+ROOT_PATH = os.getenv("ROOT_PATH", "").rstrip("/")
+app.mount("/media", StaticFiles(directory=MEDIA_ROOT), name="media")
+
+if ROOT_PATH:
+    app.mount(f"{ROOT_PATH}/media", StaticFiles(directory=MEDIA_ROOT), name="media_prefixed")
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
