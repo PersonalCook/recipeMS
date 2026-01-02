@@ -1,0 +1,63 @@
+replicaCount: 1
+
+image:
+  repository: piasotlar/recipe_service
+  tag: v19
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+config:
+  corsOrigins:
+    - "http://localhost:5173"
+  mediaRoot: "media"
+  jwtAlgorithm: "HS256"
+  elasticsearch:
+    host: "https://quickstart-es-http:9200"
+    user: "elastic"
+  userServiceUrl: "http://user-service:8000"
+
+  file:
+    enabled: true
+    name: config.yaml
+    content: |
+      cors:
+        origins:
+          - "http://localhost:5173"
+      media:
+        root: "media"
+      services:
+        user_service_url: "http://user-service:8000"
+      elasticsearch:
+        host: "https://quickstart-es-http:9200"
+        user: "elastic"
+
+secrets:
+  databaseUrlSecret:
+    name: recipe-service-db
+    key: DATABASE_URL
+
+  jwtSecret:
+    name: app-secrets
+    key: jwt-secret
+
+  elasticPassword:
+    name: quickstart-es-elastic-user
+    key: elastic
+
+  ninjasApiKey:
+    name: ninjas-nutrition-secret
+    key: NINJAS_NUTRITION_API_KEY
+
+persistence:
+  mediaPvcName: recipe-service-pvc
+
+probes:
+  livenessPath: /health
+  readinessPath: /health
+  livenessInitialDelay: 20
+  readinessInitialDelay: 10
+  periodSeconds: 10
