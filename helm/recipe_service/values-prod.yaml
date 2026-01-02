@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
-  tag: v28
+  tag: v29
   pullPolicy: IfNotPresent
 
 service:
