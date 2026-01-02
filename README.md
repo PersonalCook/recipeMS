@@ -45,16 +45,16 @@ All configuration values are parametrized via Helm `values.yaml` files.
 
 ## Environment Variables
 
-| Variable                 | Description                    | Required |
-| ------------------------ | ------------------------------ | -------- |
-| DATABASE_URL             | PostgreSQL connection string   | yes      |
-| JWT_SECRET               | JWT signing secret             | yes      |
-| JWT_ALGORITHM            | JWT algorithm (default: HS256) | no       |
-| ELASTICSEARCH_HOST       | Elasticsearch endpoint         | yes      |
-| ELASTICSEARCH_USER       | Elasticsearch user             | no       |
-| ELASTICSEARCH_PASSWORD   | Elasticsearch password         | yes      |
-| USER_SERVICE_URL         | User service base URL          | yes      |
-| NINJAS_NUTRITION_API_KEY | API Ninjas nutrition key       | optional |
+| Variable                 | Description                    |
+| ------------------------ | ------------------------------ |
+| DATABASE_URL             | PostgreSQL connection string   |
+| JWT_SECRET               | JWT signing secret             |
+| JWT_ALGORITHM            | JWT algorithm (default: HS256) |
+| ELASTICSEARCH_HOST       | Elasticsearch endpoint         |
+| ELASTICSEARCH_USER       | Elasticsearch user             |
+| ELASTICSEARCH_PASSWORD   | Elasticsearch password         |
+| USER_SERVICE_URL         | User service base URL          |
+| NINJAS_NUTRITION_API_KEY | API Ninjas nutrition key       |
 
 ---
 
@@ -143,9 +143,9 @@ Metrics are scraped using:
 
 ## API Docs
 
-- Swagger UI: http://localhost:8001/docs
-- ReDoc: http://localhost:8001/redoc
-- OpenAPI JSON: http://localhost:8001/openapi.json
+- Swagger UI: http://134.112.128.83/api/recipe/docs
+- ReDoc: http://134.112.128.83/api/recipe/redoc
+- OpenAPI JSON: http://134.112.128.83/api/recipe/openapi.json
 
 ---
 

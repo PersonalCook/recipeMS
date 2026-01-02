@@ -54,6 +54,9 @@ spec:
                   name: {{ .Values.secrets.ninjasApiKey.name }}
                   key: {{ .Values.secrets.ninjasApiKey.key }}
 
+            - name: ROOT_PATH
+              value: {{ .Values.config.rootPath | quote }}
+
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.livenessPath }}

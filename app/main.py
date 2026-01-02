@@ -24,7 +24,11 @@ os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Recipe Service")
+
+app = FastAPI(
+    root_path=os.getenv("ROOT_PATH", ""),
+    title="Recipe Service"
+)
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
