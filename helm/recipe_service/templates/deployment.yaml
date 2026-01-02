@@ -57,30 +57,34 @@ spec:
           livenessProbe:
             httpGet:
               path: {{ .Values.probes.livenessPath }}
-              port: {{ .Values.service.targetPort }}
+              port: http
             initialDelaySeconds: {{ .Values.probes.livenessInitialDelay }}
             periodSeconds: {{ .Values.probes.periodSeconds }}
 
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readinessPath }}
-              port: {{ .Values.service.targetPort }}
+              port: http
             initialDelaySeconds: {{ .Values.probes.readinessInitialDelay }}
             periodSeconds: {{ .Values.probes.periodSeconds }}
 
           volumeMounts:
+            {{- if .Values.persistence.enabled }}
             - name: media
-              mountPath: /app/media
+              mountPath: {{ .Values.persistence.mountPath }}
+            {{- end }}
             {{- if .Values.config.file.enabled }}
             - name: app-config
-              mountPath: /app/config
+              mountPath: {{ .Values.config.file.mountPath }}
               readOnly: true
             {{- end }}
 
       volumes:
+        {{- if .Values.persistence.enabled }}
         - name: media
           persistentVolumeClaim:
             claimName: {{ .Values.persistence.mediaPvcName }}
+        {{- end }}
         {{- if .Values.config.file.enabled }}
         - name: app-config
           configMap:
