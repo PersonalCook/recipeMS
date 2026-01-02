@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
-  tag: v16
+  tag: v19
   pullPolicy: IfNotPresent
 
 service:
@@ -12,7 +12,6 @@ service:
 
 config:
   corsOrigins:
-    - "http://localhost:5173"
     - "http://134.112.128.83"
   mediaRoot: "media"
   jwtAlgorithm: "HS256"
@@ -27,7 +26,6 @@ config:
     content: |
       cors:
         origins:
-          - "http://localhost:5173"
           - "http://134.112.128.83"
       media:
         root: "media"

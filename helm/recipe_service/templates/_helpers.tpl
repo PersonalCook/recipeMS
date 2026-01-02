@@ -46,9 +46,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "recipe_service.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "recipe_service.name" . }}
+app.kubernetes.io/name: recipe_service
 app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
+{{- end -}}
 
 {{/*
 Create the name of the service account to use
