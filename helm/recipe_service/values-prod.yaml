@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
-  tag: v29
+  tag: v19
   pullPolicy: IfNotPresent
 
 service:
@@ -19,7 +19,6 @@ config:
     host: "https://quickstart-es-http:9200"
     user: "elastic"
   userServiceUrl: "http://user-service:8000"
-  rootPath: "/api/recipe"
   
   file:
     enabled: true

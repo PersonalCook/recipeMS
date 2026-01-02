@@ -19,7 +19,6 @@ config:
     host: "https://quickstart-es-http:9200"
     user: "elastic"
   userServiceUrl: "http://user-service:8000"
-  rootPath: "/api/recipe"
 
   file:
     enabled: true
@@ -60,6 +59,7 @@ persistence:
   accessModes:
     - ReadWriteOnce
   mountPath: /app/media
+
 
 probes:
   livenessPath: /health
