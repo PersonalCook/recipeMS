@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
-  tag: v19
+  tag: v23
   pullPolicy: IfNotPresent
 
 service:
@@ -19,6 +19,7 @@ config:
     host: "https://quickstart-es-http:9200"
     user: "elastic"
   userServiceUrl: "http://user-service:8000"
+  rootPath: "/api/recipe"
 
   file:
     enabled: true
@@ -53,7 +54,12 @@ secrets:
     key: NINJAS_NUTRITION_API_KEY
 
 persistence:
+  enabled: true
   mediaPvcName: recipe-service-pvc
+  size: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  mountPath: /app/media
 
 probes:
   livenessPath: /health
@@ -61,3 +67,13 @@ probes:
   livenessInitialDelay: 20
   readinessInitialDelay: 10
   periodSeconds: 10
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      release: monitoring
+    interval: 15s
+    path: /metrics
+    scheme: http

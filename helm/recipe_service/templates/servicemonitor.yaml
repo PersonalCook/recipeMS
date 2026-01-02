@@ -1,20 +1,21 @@
+{{- if .Values.monitoring.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: recipe-service-monitor
-  namespace: monitoring
+  name: {{ include "recipe_service.fullname" . }}-monitor
+  namespace: {{ .Values.monitoring.serviceMonitor.namespace }}
   labels:
-    release: monitoring
+{{- toYaml .Values.monitoring.serviceMonitor.labels | nindent 4 }}
 spec:
   namespaceSelector:
     matchNames:
-      - personalcook
+      - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: recipe_service
-      app.kubernetes.io/instance: recipe-service
+      {{- include "recipe_service.selectorLabels" . | nindent 6 }}
   endpoints:
-    - port: http             
-      path: /metrics
-      interval: 15s
-      scheme: http
+    - port: http
+      path: {{ .Values.monitoring.serviceMonitor.path }}
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      scheme: {{ .Values.monitoring.serviceMonitor.scheme }}
+{{- end }}

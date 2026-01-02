@@ -1,11 +1,14 @@
+{{- if .Values.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: recipe-service-pvc
-  namespace: personalcook
+  name: {{ .Values.persistence.mediaPvcName }}
+  labels:
+    {{- include "recipe_service.labels" . | nindent 4 }}
 spec:
   accessModes:
-    - ReadWriteOnce
+{{- toYaml .Values.persistence.accessModes | nindent 4 }}
   resources:
     requests:
-      storage: 1Gi
+      storage: {{ .Values.persistence.size }}
+{{- end }}
