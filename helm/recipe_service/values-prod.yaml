@@ -12,7 +12,7 @@ service:
 
 config:
   corsOrigins:
-    - "http://134.112.128.83"
+    - "http://134.112.152.8"
   mediaRoot: "media"
   jwtAlgorithm: "HS256"
   elasticsearch:

@@ -82,7 +82,7 @@ Separate Helm values files are used:
 - `values-prod.yaml`
 
 Example deployments:
-helm upgrade --install recipe-service-prod . -n personalcook -f values-prod.yaml
+helm upgrade --install recipe-service . -n personalcook -f values-prod.yaml
 
 ---
 
