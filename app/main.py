@@ -6,7 +6,7 @@ from .metrics import (
     requests_in_progress,
 )
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-from starlette.responses import Response
+from starlette.responses import Response, RedirectResponse
 import time
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,6 +30,9 @@ os.makedirs(MEDIA_ROOT, exist_ok=True)
 app = FastAPI(
     title="Recipe Service",
     root_path=ROOT_PATH,
+    docs_url="/docs",            
+    redoc_url="/redoc",
+    openapi_url="/api/recipe/openapi.json",
 )
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173")
