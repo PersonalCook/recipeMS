@@ -26,9 +26,12 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Recipe Service")
 
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+origins = [o.strip() for o in CORS_ORIGINS.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://134.112.152.8"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
