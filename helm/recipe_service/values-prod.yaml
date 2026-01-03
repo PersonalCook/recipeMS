@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
-  tag: v35
+  tag: v37
   pullPolicy: IfNotPresent
 
 service:
@@ -11,6 +11,7 @@ service:
   targetPort: 8000
 
 config:
+  rootPath: "/api/recipe"
   corsOrigins:
     - "http://134.112.152.8"
   mediaRoot: "media"

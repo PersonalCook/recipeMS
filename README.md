@@ -73,7 +73,7 @@ All configuration values are parametrized via Helm `values.yaml` files.
 ## Kubernetes
 
 - Configuration via Helm values, ConfigMaps, and Secrets
-- API exposed through reverse proxy: http://134.112.128.83/api/recipe/
+- API exposed through reverse proxy: http://134.112.152.8/api/recipe/
 - Media stored on a PersistentVolumeClaim
 
 Separate Helm values files are used:
@@ -143,9 +143,9 @@ Metrics are scraped using:
 
 ## API Docs
 
-- Swagger UI: http://134.112.128.83/api/recipe/docs
-- ReDoc: http://134.112.128.83/api/recipe/redoc
-- OpenAPI JSON: http://134.112.128.83/api/recipe/openapi.json
+- Swagger UI: http://134.112.152.8/api/recipe/docs
+- ReDoc: http://134.112.152.8/api/recipe/redoc
+- OpenAPI JSON: http://134.112.152.8/api/recipe/openapi.json
 
 ---
 

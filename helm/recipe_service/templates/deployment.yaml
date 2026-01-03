@@ -30,6 +30,8 @@ spec:
                 name: {{ include "recipe_service.fullname" . }}-config
 
           env:
+            - name: ROOT_PATH
+              value: {{ .Values.config.rootPath | quote }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
