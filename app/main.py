@@ -14,18 +14,18 @@ from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
 from .routers import recipes
 from . import models
-from app.utils.storage import MEDIA_ROOT
 import os
 from .routers import nutrition
 from .schemas import RootResponse, HealthResponse
 
 
-os.makedirs(MEDIA_ROOT, exist_ok=True)
-
 models.Base.metadata.create_all(bind=engine)
 
 
 ROOT_PATH = os.getenv("ROOT_PATH", "").rstrip("/")
+
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", "/app/media")
+os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 app = FastAPI(
     title="Recipe Service",
