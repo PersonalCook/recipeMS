@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: piasotlar/recipe_service
-  tag: v37
+  tag: v40
   pullPolicy: IfNotPresent
 
 service:
@@ -77,3 +77,20 @@ monitoring:
     interval: 15s
     path: /metrics
     scheme: http
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+  tls:
+    enabled: true
+    secretName: personalcook-tls
+  sslRedirect: true
+
+  publicDocs:
+    enabled: true
+    name: public-docs
+    paths:
+      - /api/recipe/docs
+      - /api/recipe/openapi.json
+      - /api/recipe/redoc
